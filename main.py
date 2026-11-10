@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 
 ATOM_CHARS = r"A-Za-z0-9!#$%&'*+/=?^_`{|}~\-"
@@ -40,7 +41,8 @@ def show_results(addresses: list[str]):
 
 def main():
     while True:
-        print("\n1. Проверить e-mail  2. Поиск в тексте  0. Выход")
+        print("\n1. Проверить e-mail  2. Поиск в тексте")
+        print("3. Поиск в файле  0. Выход")
         choice = input("Действие: ").strip()
         if choice == "0":
             return
@@ -50,6 +52,13 @@ def main():
                   else "Адрес некорректный")
         elif choice == "2":
             show_results(find_emails(input("Текст: ")))
+        elif choice == "3":
+            path = Path(input("Путь к файлу: ").strip())
+            try:
+                text = path.read_text(encoding="utf-8-sig")
+                show_results(find_emails(text))
+            except (OSError, UnicodeError) as error:
+                print(f"Ошибка чтения: {error}")
         else:
             print("Выбери действие из меню")
 
