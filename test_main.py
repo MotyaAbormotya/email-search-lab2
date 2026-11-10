@@ -33,11 +33,17 @@ class EmailTests(unittest.TestCase):
 
     def test_search_and_duplicates(self):
         text = "Почта: <a@Example.org>, b+tag@site.net. Повтор: a@example.org"
-        self.assertEqual(find_emails(text), ["a@example.org", "b+tag@site.net"])
+        expected = ["a@example.org", "b+tag@site.net"]
+        self.assertEqual(find_emails(text), expected)
 
     def test_search_skips_invalid_fragments(self):
         text = "a..b@example.org a@example.org@x.org a@example.org_bad"
         self.assertEqual(find_emails(text), [])
+
+    def test_search_preserves_local_part(self):
+        text = "Name@EXAMPLE.org name@example.org Name@example.org"
+        expected = ["Name@example.org", "name@example.org"]
+        self.assertEqual(find_emails(text), expected)
 
     def test_no_matches(self):
         self.assertEqual(find_emails("Почтовых адресов нет"), [])

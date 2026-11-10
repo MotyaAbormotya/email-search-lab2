@@ -2,6 +2,7 @@ import re
 from html import unescape
 from http.client import HTTPException
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from urllib.parse import urlsplit
 from urllib.request import urlopen
 
@@ -58,14 +59,22 @@ def read_page(url: str) -> str:
     return unescape(text) if is_html else text
 
 
+def save_results(path: Path, addresses: list[str]):
+    with TemporaryDirectory(dir=path.parent) as folder:
+        temporary = Path(folder) / path.name
+        text = "\n".join(addresses) + "\n"
+        temporary.write_text(text, encoding="utf-8", newline="\n")
+        temporary.replace(path)
+
+
 def main():
     while True:
         print("\n1. Проверить e-mail  2. Поиск в тексте")
         print("3. Поиск в файле  4. Поиск по URL  0. Выход")
-        choice = input("Действие: ").strip()
-        if choice == "0":
-            return
         try:
+            choice = input("Действие: ").strip()
+            if choice == "0":
+                return
             if choice == "1":
                 address = input("E-mail: ")
                 print("Адрес корректный" if is_email(address)
@@ -81,9 +90,19 @@ def main():
             else:
                 print("Выбери действие из меню")
                 continue
-            show_results(find_emails(text))
+            addresses = find_emails(text)
+            show_results(addresses)
+            if addresses and (
+                input("Сохранить? (д/н): ").strip().lower() == "д"
+            ):
+                path = Path(input("Имя файла: ").strip())
+                save_results(path, addresses)
+                print(f"Сохранено: {path}")
         except (OSError, ValueError, LookupError, HTTPException) as error:
             print(f"Ошибка: {error}")
+        except (EOFError, KeyboardInterrupt):
+            print("\nВыход")
+            return
 
 
 if __name__ == "__main__":
